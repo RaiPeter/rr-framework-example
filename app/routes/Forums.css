@@ -1,0 +1,105 @@
+main {
+  margin: auto;
+  max-width: 800px;
+}
+main .header {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+main .header > a {
+  text-decoration: none;
+  color: rgb(71, 71, 71);
+  display: block;
+  padding: 3px 5px;
+  font-size: 0.9em;
+  background-color: rgb(214, 214, 214);
+}
+
+main .header > a:hover {
+  background: rgb(142, 142, 142);
+  color: rgb(233, 233, 233);
+}
+main .forums {
+  text-decoration: none;
+  color: rgb(71, 71, 71);
+  display: flex;
+  font-size: 20px;
+  font-weight: bold;
+  column-gap: 20px;
+  align-items: center;
+  padding: 15px 10px;
+  border-bottom: 1px solid black;
+}
+main .forums:hover {
+  color: rgb(85 85 85);
+  background: rgb(233 233 233);
+}
+main .card-body {
+  width: 100%;
+}
+main .card-body .card-header {
+  display: flex;
+  justify-content: space-between;
+}
+main .card-body .card-header h2 {
+  font-size: 1.3em;
+}
+main .card-body .card-footer {
+  display: flex;
+  align-items: center;
+  column-gap: 5px;
+  margin-top: 10px;
+  font-size: 0.8em;
+}
+main .card-header h2 {
+  cursor: pointer;
+}
+main .card-header h2:hover {
+  text-decoration: underline;
+}
+main .card-header button {
+  background-color: rgb(176, 176, 176);
+  border: none;
+  cursor: pointer;
+  font-size: 0.7em;
+  color: white;
+  width: 50px;
+  padding: 5px 5px;
+  margin-left: 10px;
+  transition: color 0.3s ease;
+}
+main .card-header button:hover {
+  background-color: white;
+  color: rgb(176, 176, 176);
+}
+main .card-header .action-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+main .upvotes svg {
+  font-size: 0.8em;
+  margin-right: 5px;
+}
+main .upvotes {
+  font-size: 1em;
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+main .pagination {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+main .pagination button {
+  margin-left: 10px;
+  margin-right: 10px;
+  padding: 5px;
+}
