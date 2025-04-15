@@ -2,6 +2,12 @@ import React from "react";
 import "./Signin.css";
 import { data, Link, redirect, useFetcher } from "react-router";
 import type { Route } from "../+types/root";
+import { db } from "~/db";
+import { users } from "~/db/schema";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcrypt";
+import store from "~/store";
+import { setUser } from "~/reducers/userReducer";
 
 export const action = async ({ request }: Route.ActionArgs) => {
   const formData = await request.formData();
@@ -22,7 +28,38 @@ export const action = async ({ request }: Route.ActionArgs) => {
     return data({ errors }, { status: 400 });
   }
 
-  return redirect("/forums");
+  const existingUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email));
+
+  if (existingUser.length === 0) {
+    console.log("User not found", existingUser[0]);
+    errors.email = "User not found";
+    return data({ errors }, { status: 400 });
+  }
+
+  const isPasswordValid = await bcrypt.compare(
+    password,
+    existingUser[0].password
+  );
+
+  if (!isPasswordValid) {
+    console.log("Invalid password");
+    errors.password = "Invalid password";
+    return data({ errors }, { status: 400 });
+  }
+
+  if (isPasswordValid) {
+    store.dispatch(
+      setUser({
+        id: existingUser[0].id,
+        username: existingUser[0].username,
+        email: existingUser[0].email,
+      })
+    );
+    return redirect("/forums");
+  }
 };
 
 const Signin = (_: Route.ComponentProps) => {

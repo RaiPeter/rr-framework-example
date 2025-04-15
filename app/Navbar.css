@@ -1,0 +1,45 @@
+nav {
+  height: 80px;
+  background-color: #eaeaea;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+nav .logo {
+  margin-left: 10px;
+}
+nav .logo h1 {
+  cursor: pointer;
+}
+
+nav .logo h1:hover {
+  color: #4b4b4b;
+  transition: color 0.3s ease;
+}
+nav .links {
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+nav .links button {
+  background-color: #6f6f6f;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: white;
+  padding: 5px 5px;
+  transition: color 0.3s ease;
+}
+
+nav .links a {
+  cursor: pointer;
+  text-decoration: none;
+  color: #4b4b4b;
+}
+
+nav .links a:hover {
+  cursor: pointer;
+  color: black;
+}
