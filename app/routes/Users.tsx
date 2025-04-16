@@ -1,7 +1,6 @@
-import React from "react";
 import { db } from "~/db";
 import { users } from "~/db/schema";
-import type { Route } from "../+types/root";
+import type { Route } from "./+types/Users";
 
 interface User {
   id: number;
@@ -16,7 +15,7 @@ export const loader = async () => {
 };
 
 const Users = ({ loaderData }: Route.ComponentProps) => {
-  const users = (loaderData ?? []) as User[];
+  const users = loaderData;
 
   if (!users || users.length === 0) {
     return <div>No users found</div>;

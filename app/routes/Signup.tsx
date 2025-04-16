@@ -1,10 +1,10 @@
 import { data, Link, redirect, useFetcher } from "react-router";
-import type { Route } from "../+types/root";
 import "./Signup.css";
 import { db } from "~/db";
 import { users } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
+import type { Route } from "./+types/Signup";
 
 interface User {
   id: number;
@@ -67,8 +67,8 @@ export const action = async ({ request }: Route.ActionArgs) => {
 };
 
 const Signup = (_: Route.ComponentProps) => {
-  let fetcher = useFetcher();
-  let errors = fetcher.data?.errors || {};
+  const fetcher = useFetcher();
+  const errors = fetcher.data?.errors;
 
   return (
     <div className="signup">

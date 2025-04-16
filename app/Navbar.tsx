@@ -1,32 +1,37 @@
 import React from "react";
 import "./Navbar.css";
-import { Link, useNavigate } from "react-router";
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "./store";
-import { logout } from "./reducers/userReducer";
+import { Form, Link, redirect, useLoaderData } from "react-router";
+import { destroySession, getSession } from "./sessions.server";
 
-const Navbar = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.user
-  );
+export async function action(request: Request) {
+  const session = await getSession(request.headers.get("Cookie"));
+  return redirect("/signin", {
+    headers: {
+      "Set-Cookie": await destroySession(session),
+    },
+  });
+}
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/signin");
+const Navbar = ({
+  data,
+}: {
+  data: {
+    username: string | undefined;
+    isAuthenticated: boolean | undefined;
   };
+}) => {
+  const { username, isAuthenticated } = data;
 
   return (
     <nav>
       <div className="logo">
-        <h1 onClick={() => navigate("/forums")}>Forum</h1>
+        <Link to="/forums">Forum</Link>
       </div>
       <div className="links">
-        <Link to={"/forums/history"}>
-          {isAuthenticated ? user?.username : ""}
-        </Link>
-        <button onClick={handleLogout}>Logout</button>
+        <Link to={"/forums/history"}>{isAuthenticated ? username : ""}</Link>
+        <Form method="post">
+          <button type="submit">Logout</button>
+        </Form>
       </div>
     </nav>
   );

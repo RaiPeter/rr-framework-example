@@ -1,15 +1,31 @@
-import React from "react";
 import "./Signin.css";
 import { data, Link, redirect, useFetcher } from "react-router";
-import type { Route } from "../+types/root";
 import { db } from "~/db";
 import { users } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
-import store from "~/store";
-import { setUser } from "~/reducers/userReducer";
+import { commitSession, getSession } from "~/sessions.server";
+import type { Route } from "./+types/Signin";
+
+export const loader = async ({ request }: Route.LoaderArgs) => {
+  const session = await getSession(request.headers.get("Cookie"));
+  if (session.has("userId")) {
+    return redirect("/forums");
+  }
+
+  return data(
+    { error: session.get("error") },
+    {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    }
+  );
+};
 
 export const action = async ({ request }: Route.ActionArgs) => {
+  const session = await getSession(request.headers.get("Cookie"));
+
   const formData = await request.formData();
   const email = String(formData.get("email"));
   const password = String(formData.get("password"));
@@ -46,29 +62,37 @@ export const action = async ({ request }: Route.ActionArgs) => {
 
   if (!isPasswordValid) {
     console.log("Invalid password");
-    errors.password = "Invalid password";
-    return data({ errors }, { status: 400 });
+    session.flash("error", "Invalid username/password");
+
+    return redirect("/signin", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
   }
 
-  if (isPasswordValid) {
-    store.dispatch(
-      setUser({
-        id: existingUser[0].id,
-        username: existingUser[0].username,
-        email: existingUser[0].email,
-      })
-    );
-    return redirect("/forums");
-  }
+  session.set("userId", existingUser[0].id);
+  session.set("username", existingUser[0].username);
+  session.set("email", existingUser[0].email);
+  session.set("isAuthenticated", true);
+
+  return redirect("/forums", {
+    headers: {
+      "Set-Cookie": await commitSession(session),
+    },
+  });
 };
 
-const Signin = (_: Route.ComponentProps) => {
+const Signin = ({ loaderData }: Route.ComponentProps) => {
   const fetcher = useFetcher();
-  const errors = fetcher.data?.errors;
+  const errors = fetcher.data?.errors || {};
+
+  const error = loaderData?.error;
 
   return (
     <div className="login">
       <h1>Login</h1>
+      {error ? <div className="error">{error}</div> : null}
       <fetcher.Form method="post">
         <div>
           <label htmlFor="email">Email:</label>

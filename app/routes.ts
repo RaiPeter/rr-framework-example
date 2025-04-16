@@ -6,4 +6,5 @@ export default [
   route("signin", "./routes/Signin.tsx"),
   route("users", "./routes/Users.tsx"),
   route("forums", "./routes/Forums.tsx"),
+  route("forums/:id", "./routes/Forum.tsx"),
 ] satisfies RouteConfig;

@@ -1,11 +1,10 @@
-import React from "react";
 import { Link, useNavigate } from "react-router";
 import { db } from "~/db";
 import { posts, upvotes, users } from "~/db/schema";
-import type { Route } from "../+types/root";
 import { FaArrowUp } from "react-icons/fa";
 import "./Forums.css";
 import { desc, eq, count } from "drizzle-orm";
+import type { Route } from "./+types/Forums";
 
 interface Forum {
   id: number;
@@ -18,12 +17,17 @@ interface Forum {
   upvotes: number;
 }
 
+interface LoaderData {
+  allForums: Forum[];
+  totalCount: number;
+}
+
 export const meta = () => {
   return [{ title: "Forums" }, { name: "description", content: "Forums" }];
 };
 
 export const loader = async () => {
-  const allForums: Forum[] = await db
+  const allForumsPromise = db
     .select({
       id: posts.id,
       title: posts.title,
@@ -40,11 +44,16 @@ export const loader = async () => {
     .groupBy(posts.id, users.id)
     .orderBy(desc(posts.created_at));
 
-  const totalCountResult: { count: number }[] = await db
+  const totalCountResultPromise = db
     .select({
       count: count(),
     })
     .from(posts);
+
+  const [allForums, totalCountResult] = await Promise.all([
+    allForumsPromise,
+    totalCountResultPromise,
+  ]);
 
   const totalCount: number = totalCountResult[0].count;
 
@@ -55,9 +64,7 @@ const Forums = ({ loaderData }: Route.ComponentProps) => {
   const navigate = useNavigate();
   //   const limit = 5;
   //   const page = parseInt(searchParams.get("page") || "1");
-  const { allForums: forums } = (loaderData ?? { allForums: [] }) as {
-    allForums: Forum[];
-  };
+  const { allForums: forums } = loaderData;
   return (
     <main>
       <div className="header">
