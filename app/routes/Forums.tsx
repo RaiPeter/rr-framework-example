@@ -1,32 +1,24 @@
-import { Link, useNavigate } from "react-router";
+import { Form, Link, useNavigate } from "react-router";
 import { db } from "~/db";
 import { posts, upvotes, users } from "~/db/schema";
 import { FaArrowUp } from "react-icons/fa";
 import "./Forums.css";
 import { desc, eq, count } from "drizzle-orm";
 import type { Route } from "./+types/Forums";
-
-interface Forum {
-  id: number;
-  title: string;
-  description: string;
-  created_at: Date;
-  user_id: number;
-  username: string;
-  email: string;
-  upvotes: number;
-}
-
-interface LoaderData {
-  allForums: Forum[];
-  totalCount: number;
-}
+import { getSession } from "~/sessions.server";
 
 export const meta = () => {
   return [{ title: "Forums" }, { name: "description", content: "Forums" }];
 };
 
-export const loader = async () => {
+export const loader = async ({ request }: Route.LoaderArgs) => {
+  const session = await getSession(request.headers.get("Cookie"));
+  const user = {
+    id: session.get("userId"),
+    username: session.get("username"),
+    isAuthenticated: session.get("isAuthenticated"),
+  };
+
   const allForumsPromise = db
     .select({
       id: posts.id,
@@ -57,14 +49,14 @@ export const loader = async () => {
 
   const totalCount: number = totalCountResult[0].count;
 
-  return { allForums, totalCount };
+  return { allForums, totalCount, user };
 };
 
 const Forums = ({ loaderData }: Route.ComponentProps) => {
   const navigate = useNavigate();
   //   const limit = 5;
   //   const page = parseInt(searchParams.get("page") || "1");
-  const { allForums: forums } = loaderData;
+  const { allForums: forums, totalCount, user } = loaderData;
   return (
     <main>
       <div className="header">
@@ -85,20 +77,31 @@ const Forums = ({ loaderData }: Route.ComponentProps) => {
                     {forum.title}
                   </h2>
                 </div>
-                {/* {forum.user_id === user.id ? (
+                {forum.user_id === user.id ? (
                   <div className="action-buttons">
                     <button
                       onClick={() => navigate(`/forums/${forum.id}/edit`)}
                     >
                       Edit
                     </button>
-                    <button onClick={() => handleDelete(forum.id)}>
-                      Delete
-                    </button>
+                    <Form
+                      method="post"
+                      action={`/forums/${forum.id}/delete`}
+                      onSubmit={(event) => {
+                        const response = confirm(
+                          "Please confirm you want to delete this record."
+                        );
+                        if (!response) {
+                          event.preventDefault();
+                        }
+                      }}
+                    >
+                      <button type="submit">Delete</button>
+                    </Form>
                   </div>
                 ) : (
                   ""
-                )} */}
+                )}
               </div>
               <div className="card-footer">
                 <p>{forum.username} asked on</p>

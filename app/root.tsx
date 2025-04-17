@@ -7,11 +7,9 @@ import {
   ScrollRestoration,
   useLocation,
 } from "react-router";
-import Navbar from "./Navbar";
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { getSession } from "./sessions.server";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -43,24 +41,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
-  return {
-    username: session.get("username"),
-    isAuthenticated: session.get("isAuthenticated"),
-  };
-}
 
-export default function App({ loaderData }: Route.ComponentProps) {
-  const location = useLocation();
-  const isAuthPage = ["/signin", "/signup"].includes(location.pathname);
-
-  return (
-    <>
-      {!isAuthPage && <Navbar data={loaderData} />}
-      <Outlet />
-    </>
-  );
+export default function App() {
+  return <Outlet />;
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
