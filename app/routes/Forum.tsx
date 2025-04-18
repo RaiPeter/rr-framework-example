@@ -6,7 +6,7 @@ import { eq, count, and } from "drizzle-orm";
 import type { Route } from "./+types/Forum";
 import { getSession } from "~/sessions.server";
 import { FaArrowUp } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -79,57 +79,6 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const actionType = formData.get("actionType");
   const paramId = params.id;
-
-  switch (actionType) {
-    case "upvote": {
-      let hasUpvoted = false;
-      if (userId) {
-        const existingUpvote = await db
-          .select()
-          .from(upvotes)
-          .where(
-            and(
-              eq(upvotes.post_id, parseInt(paramId)),
-              eq(upvotes.user_id, userId)
-            )
-          );
-
-        hasUpvoted = existingUpvote.length > 0;
-      }
-
-      if (hasUpvoted && userId) {
-        await db
-          .delete(upvotes)
-          .where(
-            and(
-              eq(upvotes.post_id, parseInt(paramId)),
-              eq(upvotes.user_id, userId)
-            )
-          );
-      } else {
-        await db.insert(upvotes).values({
-          post_id: parseInt(paramId),
-          user_id: userId,
-        });
-      }
-      return null;
-    }
-
-    case "editComment": {
-      const commentId = formData.get("commentId");
-      const content = String(formData.get("content"));
-
-      await db
-        .update(comments)
-        .set({ content })
-        .where(eq(comments.id, parseInt(String(commentId))));
-
-      return null;
-    }
-
-    default:
-      return null;
-  }
 }
 
 const Forum = ({ loaderData }: Route.ComponentProps) => {
@@ -141,19 +90,27 @@ const Forum = ({ loaderData }: Route.ComponentProps) => {
     userId,
   } = loaderData;
   const fetcher = useFetcher();
+  const editFetcher = useFetcher();
 
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
-  const [editedContent, setEditedContent] = useState<string>("");
 
   const handleEditCancel = () => {
     setEditingCommentId(null);
-    setEditedContent("");
   };
 
   const handleEditClick = (comment: { id: number; content: string }) => {
     setEditingCommentId(comment.id);
-    setEditedContent(comment.content);
   };
+
+  useEffect(() => {
+    if (
+      editFetcher.state === "idle" &&
+      editFetcher.data !== undefined &&
+      !editFetcher.data?.error
+    ) {
+      setEditingCommentId(null);
+    }
+  }, [editFetcher.state, editFetcher.data]);
 
   return (
     <div>
@@ -174,8 +131,7 @@ const Forum = ({ loaderData }: Route.ComponentProps) => {
                 </p>
               </div>
               <p>{forum.description}</p>
-              <fetcher.Form method="post">
-                <input type="hidden" name="actionType" value="upvote" />
+              <fetcher.Form method="post" action={`/forums/${forum.id}/upvote`}>
                 <button className="forum-upvotes">
                   <FaArrowUp color={hasUpvoted ? "orange" : "gray"} />{" "}
                   {upvotesCount}
@@ -188,24 +144,17 @@ const Forum = ({ loaderData }: Route.ComponentProps) => {
           <div key={comment.id} className="comment-card">
             {editingCommentId === comment.id ? (
               <div className="comment-card-edit">
-                <textarea
-                  value={editedContent}
-                  onChange={(e) => setEditedContent(e.target.value)}
-                />
-                <br />
-                <div>
-                  <fetcher.Form method="post">
-                    <input
-                      type="hidden"
-                      name="actionType"
-                      value="editComment"
-                    />
-                    <input type="hidden" name="commentId" value={comment.id} />
-                    <input type="hidden" name="content" value={editedContent} />
-                    <button>Save</button>
+                <editFetcher.Form
+                  method="post"
+                  action={`/comments/${comment.id}/edit`}
+                >
+                  <textarea name="content" defaultValue={comment.content} />
+                  <br />
+                  <div>
+                    <button type="submit">Save</button>
                     <button onClick={handleEditCancel}>Cancel</button>
-                  </fetcher.Form>
-                </div>
+                  </div>
+                </editFetcher.Form>
               </div>
             ) : (
               <div className="comment-card-body">
@@ -222,8 +171,7 @@ const Forum = ({ loaderData }: Route.ComponentProps) => {
                         }
                       )}
                     </p>
-                  </div>
-                  //{" "}
+                  </div>{" "}
                   {comment.user_id === userId && (
                     <div>
                       <button onClick={() => handleEditClick(comment)}>
@@ -243,7 +191,20 @@ const Forum = ({ loaderData }: Route.ComponentProps) => {
             )}
           </div>
         ))}
-        {/* <Comments onCommentSubmit={fetchForum} /> */}
+        <div className="comments">
+          <fetcher.Form method="post" action={`comments/new`}>
+            <div>
+              <textarea
+                id="comment"
+                name="content"
+                defaultValue=""
+                required
+                placeholder="Add a comment..."
+              ></textarea>
+            </div>
+            <button type="submit">Submit</button>
+          </fetcher.Form>
+        </div>
       </div>
     </div>
   );
