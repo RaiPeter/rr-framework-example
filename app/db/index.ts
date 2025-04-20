@@ -7,6 +7,3 @@ const client = postgres(
 );
 
 export const db = drizzle(client, { schema });
-
-const results = await db.execute("select 1");
-console.log(results);
