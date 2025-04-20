@@ -179,7 +179,7 @@ const Forum = ({ loaderData }: Route.ComponentProps) => {
                       </button>
                       <fetcher.Form
                         method="post"
-                        action={`comments/${comment.id}/delete`}
+                        action={`/comments/${comment.id}/delete`}
                       >
                         <button type="submit">Delete</button>
                       </fetcher.Form>

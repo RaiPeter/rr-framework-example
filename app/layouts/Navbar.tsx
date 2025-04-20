@@ -1,7 +1,7 @@
 import "./Navbar.css";
-import { Form, Link, Outlet, redirect } from "react-router";
-import { destroySession, getSession } from "../sessions.server";
+import { Form, Link, Outlet, redirect, useFetcher } from "react-router";
 import type { Route } from "./+types/Navbar";
+import { getSession } from "~/sessions.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -11,26 +11,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   };
 }
 
-export async function action(request: Request) {
-  const session = await getSession(request.headers.get("Cookie"));
-  return redirect("/signin", {
-    headers: {
-      "Set-Cookie": await destroySession(session),
-    },
-  });
-}
-
 const Navbar = ({ loaderData }: Route.ComponentProps) => {
   const { username, isAuthenticated } = loaderData;
   return (
     <div>
       <nav>
         <div className="logo">
-          <Link to="/forums">Forum</Link>
+          <Link to={"/forums"}>Forum</Link>
         </div>
         <div className="links">
           <Link to={"/forums/history"}>{isAuthenticated ? username : ""}</Link>
-          <Form method="post">
+          <Form method="post" action="/logout">
             <button type="submit">Logout</button>
           </Form>
         </div>

@@ -1,5 +1,7 @@
 import type { Route } from "./+types/home";
 import { Welcome } from "../welcome/welcome";
+import { redirect } from "react-router";
+import { getSession } from "~/sessions.server";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -8,6 +10,13 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+export async function loader({}: Route.LoaderArgs) {
+  const session = await getSession();
+  const userId = session.get("userId");
+  if (!userId) {
+    return redirect("/signin");
+  }
+}
 export default function Home() {
   return <Welcome />;
 }

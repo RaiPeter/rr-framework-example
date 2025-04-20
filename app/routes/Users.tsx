@@ -27,7 +27,7 @@ const Users = ({ loaderData }: Route.ComponentProps) => {
       <ul>
         {users.map((user) => (
           <li key={user.id}>
-            {user.username} - {user.email}
+            {user.username} - {user.email} - {user.id}
           </li>
         ))}
       </ul>

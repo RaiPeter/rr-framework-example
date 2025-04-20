@@ -18,6 +18,7 @@ export const action = async ({ request, params }: Route.ActionArgs) => {
       },
     });
   }
+  console.log("CommentDelete", commentId, userId);
 
   await db.delete(comments).where(eq(comments.id, parseInt(commentId)));
 
