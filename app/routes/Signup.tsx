@@ -63,7 +63,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
 
   console.log("create new user", newUser);
 
-  return redirect("/forums");
+  return redirect("/signin");
 };
 
 const Signup = (_: Route.ComponentProps) => {

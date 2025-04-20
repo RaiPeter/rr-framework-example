@@ -18,6 +18,7 @@ export default [
     route("comments/:id/delete", "./routes/CommentDelete.tsx"),
     route("comments/:id/edit", "./routes/CommentEdit.tsx"),
     route("forums/:id/upvote", "./routes/AddUpvote.tsx"),
+    route("users/history", "./routes/History.tsx"),
   ]),
   route("signup", "./routes/Signup.tsx"),
   route("signin", "./routes/Signin.tsx"),

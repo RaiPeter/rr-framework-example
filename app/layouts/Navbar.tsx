@@ -20,7 +20,7 @@ const Navbar = ({ loaderData }: Route.ComponentProps) => {
           <Link to={"/forums"}>Forum</Link>
         </div>
         <div className="links">
-          <Link to={"/forums/history"}>{isAuthenticated ? username : ""}</Link>
+          <Link to={"/users/history"}>{isAuthenticated ? username : ""}</Link>
           <Form method="post" action="/logout">
             <button type="submit">Logout</button>
           </Form>
