@@ -1,4 +1,4 @@
-import { Form, Link, useNavigate } from "react-router";
+import { Form, Link, useNavigate, useSearchParams } from "react-router";
 import { db } from "~/db";
 import { posts, upvotes, users } from "~/db/schema";
 import { FaArrowUp } from "react-icons/fa";
@@ -12,6 +12,11 @@ export const meta = () => {
 };
 
 export const loader = async ({ request }: Route.LoaderArgs) => {
+  const url = new URL(request.url);
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = 5;
+  const offset = (page - 1) * limit;
+
   const session = await getSession(request.headers.get("Cookie"));
   const user = {
     id: session.get("userId"),
@@ -34,7 +39,9 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
     .innerJoin(users, eq(posts.user_id, users.id))
     .leftJoin(upvotes, eq(upvotes.post_id, posts.id))
     .groupBy(posts.id, users.id)
-    .orderBy(desc(posts.created_at));
+    .orderBy(desc(posts.created_at))
+    .limit(limit)
+    .offset(offset);
 
   const totalCountResultPromise = db
     .select({
@@ -48,15 +55,22 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
   ]);
 
   const totalCount: number = totalCountResult[0].count;
+  const totalPages = Math.ceil(totalCount / limit);
 
-  return { allForums, totalCount, user };
+  return { allForums, totalCount, totalPages, page, user };
 };
 
 const Forums = ({ loaderData }: Route.ComponentProps) => {
   const navigate = useNavigate();
-  //   const limit = 5;
-  //   const page = parseInt(searchParams.get("page") || "1");
-  const { allForums: forums, totalCount, user } = loaderData;
+  const [searchParams] = useSearchParams();
+  const { allForums: forums, totalCount, totalPages, page, user } = loaderData;
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", newPage.toString());
+    navigate(`?${params.toString()}`);
+  };
+
   return (
     <main>
       <div className="header">
@@ -116,7 +130,7 @@ const Forums = ({ loaderData }: Route.ComponentProps) => {
             </div>
           </div>
         ))}
-      {/* <div className="pagination">
+      <div className="pagination">
         <button
           disabled={page === 1}
           onClick={() => handlePageChange(page - 1)}
@@ -132,7 +146,7 @@ const Forums = ({ loaderData }: Route.ComponentProps) => {
         >
           Next
         </button>
-      </div> */}
+      </div>
     </main>
   );
 };
